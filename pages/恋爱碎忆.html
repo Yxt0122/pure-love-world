@@ -330,19 +330,25 @@
             card.className = 'video-card';
             card.dataset.index = index;
             card.dataset.src = VIDEO_BASE + filename;
-            card.dataset.loaded = '0';
+            card.dataset.loaded = '1';
 
             const video = document.createElement('video');
             video.muted = true;
             video.loop = true;
             video.playsInline = true;
+            video.autoplay = true;
             video.preload = 'auto';
+            video.src = card.dataset.src;
+            video.setAttribute('muted', '');
+            video.setAttribute('playsinline', '');
+            video.setAttribute('autoplay', '');
+            video.setAttribute('preload', 'auto');
 
             const playIcon = document.createElement('div');
             playIcon.className = 'play-icon';
             const lazyTip = document.createElement('div');
             lazyTip.className = 'lazy-tip';
-            lazyTip.textContent = '点击播放';
+            lazyTip.textContent = '加载中';
 
             card.appendChild(video);
             card.appendChild(lazyTip);
@@ -353,14 +359,17 @@
 
         // 给卡片加载视频并播放
         function loadVideoCard(card, autoPlay = true) {
-            if (card.dataset.loaded === '1') return;
             card.dataset.loaded = '1';
             card.classList.add('loaded');
             const video = card.querySelector('video');
             video.preload = 'auto';
-            video.src = card.dataset.src;
+            if (!video.src) video.src = card.dataset.src;
+            video.load();
             if (autoPlay) {
-                video.addEventListener('canplay', () => { video.play().catch(() => {}); }, { once: true });
+                const play = () => video.play().catch(() => {});
+                video.addEventListener('loadedmetadata', play, { once: true });
+                video.addEventListener('canplay', play, { once: true });
+                play();
             }
         }
 
@@ -382,10 +391,19 @@
         buildTrack(trackTop, topVideos, 0);
         buildTrack(trackBottom, bottomVideos, 11);
 
-        // 页面渲染完成后自动加载全部视频，不需要点击或鼠标移入
+        // 页面渲染完成后自动加载并播放全部视频，不需要点击或鼠标移入
         function loadAllVideos() {
-            const cards = document.querySelectorAll('.video-card[data-loaded="0"]');
+            const cards = document.querySelectorAll('.video-card');
             cards.forEach(card => loadVideoCard(card));
+            // 部分浏览器会延迟自动播放，额外重试几次，确保所有胶片都开始动
+            let retryCount = 0;
+            const retryTimer = setInterval(() => {
+                document.querySelectorAll('.video-card video').forEach(video => {
+                    if (video.paused) video.play().catch(() => {});
+                });
+                retryCount++;
+                if (retryCount >= 8) clearInterval(retryTimer);
+            }, 1200);
         }
         window.addEventListener('load', loadAllVideos);
 
