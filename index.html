@@ -7,7 +7,8 @@
     <script>
         // 在页面渲染前检查登录状态，避免未登录时先闪现主页
         (function() {
-            if (!localStorage.getItem('user_name')) {
+            const allowHome = sessionStorage.getItem('allow_home') === '1';
+            if (!allowHome) {
                 window.location.replace('pages/login.html');
             } else {
                 document.documentElement.classList.remove('auth-checking');
@@ -554,6 +555,7 @@
         function logout() {
             // 清除登录信息
             localStorage.removeItem('user_name');
+            sessionStorage.removeItem('allow_home');
             // 跳转到登录页（带转场）
             transitionTo('pages/login.html', 'fade-blur');
         }
