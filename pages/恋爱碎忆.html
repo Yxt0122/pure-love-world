@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>恋爱碎忆</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif;
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 20%, #e1bee7 40%, #b3e5fc 70%, #fff3e0 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 动态背景层 - 飘落花瓣 */
+        .petals { position: fixed; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+        .petal {
+            position: absolute;
+            width: 14px; height: 14px;
+            background: radial-gradient(circle at 30% 30%, #ffb6c1, #ff69b4);
+            border-radius: 50% 0 50% 50%;
+            opacity: 0.7;
+            animation: petalFall linear infinite;
+        }
+        @keyframes petalFall {
+            0% { transform: translateY(-50px) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.5; }
+            100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* 星光闪烁 */
+        .stars { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
+        .star {
+            position: absolute;
+            width: 3px; height: 3px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 6px rgba(255,255,255,0.8);
+            animation: twinkle 3s ease-in-out infinite;
+        }
+        @keyframes twinkle { 0%,100% { opacity: 0.2; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+
+        /* 标题区 */
+        .header {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 40px 20px 20px;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ff6b9d, #c44dff, #6bc5ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 20px rgba(255,107,157,0.3);
+            letter-spacing: 0.1em;
+        }
+        .header p {
+            margin-top: 10px;
+            color: #8e6b8e;
+            font-size: 0.95rem;
+            letter-spacing: 0.05em;
+        }
+
+        /* 返回按钮 */
+        .back-btn {
+            position: fixed;
+            top: 20px; right: 20px;
+            z-index: 100;
+            background: rgba(255,255,255,0.4);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.5);
+            color: #666;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .back-btn:hover { background: rgba(255,107,157,0.3); color: white; transform: translateX(-3px); }
+
+        /* 视频循环带容器 */
+        .film-strip-container {
+            position: relative;
+            z-index: 5;
+            margin: 30px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 100px;
+            padding: 20px 0;
+        }
+
+        .film-row {
+            position: relative;
+            overflow: hidden;
+            height: 220px;
+            /* 左右渐隐遮罩，营造电影胶片感 */
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+        }
+
+        .film-track {
+            display: flex;
+            gap: 18px;
+            position: absolute;
+            will-change: transform;
+            /* 开启 GPU 加速，配合 translate3d 让滚动更流畅 */
+            transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
+        }
+        .film-track.top { animation: scrollLeft 120s linear infinite; }
+        .film-track.bottom { animation: scrollRight 120s linear infinite; }
+        .film-row.paused .film-track { animation-play-state: paused; }
+
+        @keyframes scrollLeft {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-50%, 0, 0); }
+        }
+        @keyframes scrollRight {
+            0% { transform: translate3d(-50%, 0, 0); }
+            100% { transform: translate3d(0, 0, 0); }
+        }
+
+        /* 单个视频卡片 - 电影胶片风格 */
+        .video-card {
+            width: 300px;
+            height: 220px;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            flex-shrink: 0;
+            background: #1a1a1a;
+            padding: 22px 8px;
+            /* 上下深色胶片边 + 左右细边 */
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        /* 胶片孔 - 上排 */
+        .video-card::before,
+        .video-card::after {
+            content: '';
+            position: absolute;
+            left: 8px; right: 8px;
+            height: 10px;
+            background-image: radial-gradient(circle, #000 3px, transparent 3.5px);
+            background-size: 22px 10px;
+            background-repeat: repeat-x;
+            background-position: center;
+            z-index: 2;
+        }
+        .video-card::before { top: 5px; }
+        .video-card::after { bottom: 5px; }
+
+        .video-card:hover {
+            transform: scale(1.06);
+            box-shadow: 0 10px 30px rgba(255,107,157,0.5), inset 0 0 0 1px rgba(255,107,157,0.3);
+            z-index: 10;
+        }
+        .video-card video {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+            border-radius: 3px;
+        }
+        .video-card .play-icon {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px; height: 50px;
+            background: rgba(255,107,157,0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .video-card:hover .play-icon { opacity: 1; }
+        .play-icon::after {
+            content: '';
+            width: 0; height: 0;
+            border-left: 16px solid white;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            margin-left: 4px;
+        }
+
+        /* 弹窗播放器 */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal-player {
+            position: relative;
+            width: 50vw;
+            max-width: 50vw;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .modal-player video {
+            width: 100%;
+            display: block;
+            border-radius: 16px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px; left: 10px;
+            z-index: 10;
+            width: 36px; height: 36px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .modal-close:hover { background: rgba(255,69,80,0.8); transform: scale(1.1); }
+    </style>
+</head>
+<body>
+    <!-- 动态背景 -->
+    <div class="petals" id="petals"></div>
+    <div class="stars" id="stars"></div>
+
+    <!-- 返回按钮 -->
+    <button class="back-btn" onclick="transitionTo('../index.html', 'iris')">← 返回主页</button>
+
+    <!-- 标题 -->
+    <div class="header">
+        <h1>恋爱碎忆</h1>
+        <p>那些高甜瞬间，像电影胶片般在眼前流转 ✨</p>
+    </div>
+
+    <!-- 双排视频循环带 -->
+    <div class="film-strip-container">
+        <div class="film-row" id="rowTop">
+            <div class="film-track top" id="trackTop"></div>
+        </div>
+        <div class="film-row" id="rowBottom">
+            <div class="film-track bottom" id="trackBottom"></div>
+        </div>
+    </div>
+
+    <!-- 弹窗播放器 -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-player">
+            <button class="modal-close" onclick="closeModal()">✕</button>
+            <video id="modalVideo" loop></video>
+        </div>
+    </div>
+
+    <script>
+        // 21个视频文件名
+        const VIDEOS = [
+            '246e5c461f1e82d996379ceb44a41379.mp4',
+            '250c090e7d39942a2a6e9c8aed87b569.mp4',
+            '26bcd4f52b8a6f6b4750b2db00ac6123.mp4',
+            '2d3248ea5f42a86cd7ea3f5d3897ab6d.mp4',
+            '338ad3c1a006d1f5bd560116fb1fd486.mp4',
+            '3aeceaa704dfd12aa136375693b60280.mp4',
+            '3b65f8a383d49e3e50bcccb05a442d07.mp4',
+            '732de2032118c1268c4ffbf85a5cf413.mp4',
+            '743bc9bbe8ecfb9e1b5983fa9164141d.mp4',
+            '7e4153375269f9e45671f58b2442a901.mp4',
+            '88d7f73e98ec4ca18e1d080bf4386a2d.mp4',
+            '9bd7a59d4576471bb936f39ba3e137b0.mp4',
+            'a5a45681eeddb9232c5adbcd1429c953.mp4',
+            'af2e8eb6d6d3287bead0c6e770580f6d.mp4',
+            'b2b4f95d02c5e52cf3fcf5738dfb6881.mp4',
+            'c8266252c9d59aac7cdab63582f33520.mp4',
+            'd0b57d3a66013be3d22c38fc55378df0.mp4',
+            'dd455b0cd19ccfd23bb921de2ca7b9e5.mp4',
+            'ee1e6571d1725dcc31d93b4c102476f8.mp4',
+            'ee822b1d3935b14d7fc56a7fd548867a.mp4',
+            'f8772a5ec4071fd811c89cfd27b2215b.mp4'
+        ];
+
+        const VIDEO_BASE = '../assets/videos/sweet-scenes/';
+
+        // 创建视频卡片元素（先创建占位卡片，延迟加载视频 src）
+        function createVideoCard(filename, index) {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            card.dataset.index = index;
+            card.dataset.src = VIDEO_BASE + filename;
+            card.dataset.loaded = '0';
+
+            const video = document.createElement('video');
+            video.muted = true;
+            video.loop = true;
+            video.playsInline = true;
+            video.preload = 'auto';
+
+            const playIcon = document.createElement('div');
+            playIcon.className = 'play-icon';
+
+            card.appendChild(video);
+            card.appendChild(playIcon);
+            card.addEventListener('click', () => openModal(index));
+            return card;
+        }
+
+        // 给卡片加载视频并播放
+        function loadVideoCard(card) {
+            if (card.dataset.loaded === '1') return;
+            card.dataset.loaded = '1';
+            const video = card.querySelector('video');
+            video.src = card.dataset.src;
+            video.addEventListener('canplay', () => { video.play().catch(() => {}); }, { once: true });
+        }
+
+        // 分批创建视频卡片（同步创建 DOM，不加载视频）
+        function buildTrack(trackEl, videoList, indexOffset) {
+            const allVideos = [...videoList, ...videoList];
+            for (let i = 0; i < allVideos.length; i++) {
+                const card = createVideoCard(allVideos[i], (i % videoList.length) + indexOffset);
+                trackEl.appendChild(card);
+            }
+        }
+
+        // 初始化双排循环带（先创建卡片，不加载视频，首屏不卡顿）
+        const topVideos = VIDEOS.slice(0, 11);
+        const bottomVideos = VIDEOS.slice(11);
+        const trackTop = document.getElementById('trackTop');
+        const trackBottom = document.getElementById('trackBottom');
+
+        buildTrack(trackTop, topVideos, 0);
+        buildTrack(trackBottom, bottomVideos, 11);
+
+        // 页面渲染完成后，上下排交替分批加载，确保两排同时亮起
+        function lazyLoadAll() {
+            const topCards = trackTop.querySelectorAll('.video-card[data-loaded="0"]');
+            const bottomCards = trackBottom.querySelectorAll('.video-card[data-loaded="0"]');
+            // 优先加载两排的前 3 个（首屏可见），共 6 个
+            for (let i = 0; i < 3; i++) {
+                if (topCards[i]) loadVideoCard(topCards[i]);
+                if (bottomCards[i]) loadVideoCard(bottomCards[i]);
+            }
+            // 其余视频上下排交替加载，每 180ms 一个
+            let ti = 3, bi = 3, turn = 0;
+            function loadNext() {
+                if (turn % 2 === 0) {
+                    if (ti < topCards.length) { loadVideoCard(topCards[ti]); ti++; }
+                    turn++;
+                } else {
+                    if (bi < bottomCards.length) { loadVideoCard(bottomCards[bi]); bi++; }
+                    turn++;
+                }
+                if (ti < topCards.length || bi < bottomCards.length) {
+                    setTimeout(loadNext, 180);
+                }
+            }
+            setTimeout(loadNext, 500);
+        }
+        window.addEventListener('load', lazyLoadAll);
+
+        // 弹窗播放
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalVideo = document.getElementById('modalVideo');
+        const rowTop = document.getElementById('rowTop');
+        const rowBottom = document.getElementById('rowBottom');
+
+        function openModal(index) {
+            // 循环带继续流动，不暂停
+            const src = VIDEO_BASE + VIDEOS[index];
+            modalVideo.src = src;
+            modalVideo.muted = false;
+            modalVideo.volume = 0.8;
+            modalVideo.currentTime = 0;
+            modalVideo.play().catch(() => {});
+            modalOverlay.classList.add('active');
+        }
+
+        function closeModal() {
+            modalVideo.pause();
+            modalVideo.muted = true;
+            modalOverlay.classList.remove('active');
+        }
+
+        // 点击遮罩关闭
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        // ESC 键关闭
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modalOverlay.classList.contains('active')) closeModal();
+        });
+
+        // 生成飘落花瓣
+        const petalsContainer = document.getElementById('petals');
+        for (let i = 0; i < 20; i++) {
+            const petal = document.createElement('div');
+            petal.className = 'petal';
+            petal.style.left = Math.random() * 100 + '%';
+            petal.style.animationDuration = (8 + Math.random() * 8) + 's';
+            petal.style.animationDelay = Math.random() * 10 + 's';
+            petal.style.width = (10 + Math.random() * 8) + 'px';
+            petal.style.height = (10 + Math.random() * 8) + 'px';
+            petal.style.opacity = 0.3 + Math.random() * 0.4;
+            petalsContainer.appendChild(petal);
+        }
+
+        // 生成星光
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 40; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starsContainer.appendChild(star);
+        }
+    </script>
+    <script src="../assets/js/transition.js"></script>
+</body>
+</html>

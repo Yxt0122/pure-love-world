@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>恋爱物语树洞</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #ffeef8 0%, #ffe3f1 25%, #ffd4e5 50%, #ffc4dc 75%, #ffb5d3 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 返回主页按钮 */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #ff69b4;
+            border-radius: 25px;
+            color: #ff1493;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(255, 20, 147, 0.3);
+        }
+
+        .back-btn:hover {
+            background: #ff1493;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 20, 147, 0.5);
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 900px;
+            margin: 80px auto 40px;
+        }
+
+        /* 标题 */
+        .title {
+            text-align: center;
+            color: #ff1493;
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(255, 20, 147, 0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #ff69b4;
+            font-size: 1.1em;
+            margin-bottom: 40px;
+        }
+
+        /* 留言输入区 */
+        .input-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(255, 20, 147, 0.2);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            color: #ff1493;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ffb5d3;
+            border-radius: 15px;
+            font-size: 1em;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #ff1493;
+            box-shadow: 0 0 15px rgba(255, 20, 147, 0.3);
+        }
+
+        textarea.input-field {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #ff1493 0%, #ff69b4 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(255, 20, 147, 0.4);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(255, 20, 147, 0.6);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* 留言列表 */
+        .messages-section {
+            margin-top: 40px;
+        }
+
+        .section-title {
+            color: #ff1493;
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .message-card {
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #8B4513 100%);
+            border-radius: 50% 50% 20px 20px / 20% 20% 80% 80%;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3), inset 0 2px 5px rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            position: relative;
+            border: 3px solid #654321;
+        }
+
+        .message-card::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 15px;
+            background: radial-gradient(ellipse at center, rgba(101, 67, 33, 0.8) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .message-card::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 15%;
+            width: 25px;
+            height: 25px;
+            background: radial-gradient(circle, #654321 30%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .message-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 20, 147, 0.25);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .message-author {
+            color: #ffe4b5;
+            font-weight: bold;
+            font-size: 1.1em;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .message-time {
+            color: #f5deb3;
+            font-size: 0.85em;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .message-content {
+            color: #fff;
+            line-height: 1.6;
+            font-size: 1em;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            color: #ff69b4;
+            font-size: 1.1em;
+            padding: 60px 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+        }
+
+        /* 漂浮装饰 */
+        .float-heart {
+            position: fixed;
+            font-size: 25px;
+            opacity: 0.2;
+            animation: float 8s infinite ease-in-out;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-40px) rotate(15deg); }
+        }
+
+        /* 记录按钮 */
+        .record-btn {
+            position: fixed;
+            top: 20px;
+            right: 160px;
+            z-index: 1000;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #ff69b4;
+            border-radius: 25px;
+            color: #ff1493;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(255, 20, 147, 0.3);
+        }
+        .record-btn:hover {
+            background: #ff1493;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 20, 147, 0.5);
+        }
+
+        /* 记录弹窗 */
+        .record-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .record-overlay.active { display: flex; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .record-modal {
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 20px;
+            width: 520px;
+            max-width: 90vw;
+            max-height: 75vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(255, 20, 147, 0.3);
+            animation: modalSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes modalSlideIn { from { transform: scale(0.85) translateY(30px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid rgba(255, 20, 147, 0.15);
+        }
+        .record-header h3 { color: #ff1493; font-size: 1.3em; }
+        .record-close {
+            width: 34px; height: 34px;
+            border: none;
+            background: rgba(255, 20, 147, 0.1);
+            border-radius: 50%;
+            color: #ff1493;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .record-close:hover { background: #ff1493; color: white; }
+
+        .record-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 25px;
+        }
+        .record-item {
+            background: linear-gradient(135deg, #fff0f6 0%, #ffe3f1 100%);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 14px;
+            position: relative;
+            border: 1px solid rgba(255, 20, 147, 0.1);
+            transition: all 0.2s;
+        }
+        .record-item:hover { box-shadow: 0 4px 15px rgba(255, 20, 147, 0.15); }
+        .record-item-time { color: #ff69b4; font-size: 0.82em; margin-bottom: 8px; }
+        .record-item-content { color: #555; line-height: 1.6; font-size: 0.95em; white-space: pre-wrap; word-break: break-word; }
+        .record-item-delete {
+            position: absolute;
+            top: 12px; right: 12px;
+            width: 28px; height: 28px;
+            border: none;
+            background: rgba(254, 44, 85, 0.1);
+            border-radius: 50%;
+            color: #fe2c55;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .record-item-delete:hover { background: #fe2c55; color: white; }
+        .record-empty { text-align: center; color: #ff69b4; padding: 50px 20px; font-size: 1em; }
+    </style>
+</head>
+<body>
+    <!-- 返回主页按钮 -->
+    <button class="back-btn" onclick="goBack()">
+        <span>🏠</span>
+        <span>返回主页</span>
+    </button>
+
+    <!-- 记录按钮 -->
+    <button class="record-btn" onclick="openRecord()">
+        <span>📋</span>
+        <span>我的记录</span>
+    </button>
+
+    <!-- 记录弹窗 -->
+    <div class="record-overlay" id="recordOverlay">
+        <div class="record-modal">
+            <div class="record-header">
+                <h3>📋 我的留言记录</h3>
+                <button class="record-close" onclick="closeRecord()">✕</button>
+            </div>
+            <div class="record-list" id="recordList"></div>
+        </div>
+    </div>
+
+    <!-- 漂浮装饰 -->
+    <div class="float-heart" style="top: 10%; left: 5%; animation-delay: 0s;">💗</div>
+    <div class="float-heart" style="top: 30%; right: 8%; animation-delay: 2s;">💕</div>
+    <div class="float-heart" style="bottom: 20%; left: 10%; animation-delay: 4s;">💖</div>
+    <div class="float-heart" style="bottom: 40%; right: 15%; animation-delay: 6s;">💝</div>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 标题 -->
+        <h1 class="title">💌 恋爱物语树洞 💌</h1>
+        <p class="subtitle">在这里分享你的心情，留下你的浪漫故事...</p>
+
+        <!-- 留言输入区 -->
+        <div class="input-section">
+            <form id="messageForm">
+                <div class="input-group">
+                    <label class="input-label">留言内容</label>
+                    <textarea id="messageContent" class="input-field" placeholder="写下你想说的话..." required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">✨ 投入树洞 ✨</button>
+            </form>
+        </div>
+
+        <!-- 留言列表 -->
+        <div class="messages-section">
+            <h2 class="section-title">📮 树洞留言墙</h2>
+            <div id="messagesList">
+                <div class="empty-state">
+                    还没有人留言哦，快来成为第一个吧~ 💕
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'treehole_messages';
+
+        // 返回主页
+        function goBack() {
+            transitionTo('../index.html', 'slide-left');
+        }
+
+        // 打开记录弹窗
+        function openRecord() {
+            renderRecords();
+            document.getElementById('recordOverlay').classList.add('active');
+        }
+
+        // 关闭记录弹窗
+        function closeRecord() {
+            document.getElementById('recordOverlay').classList.remove('active');
+        }
+
+        // 点击遮罩关闭
+        document.getElementById('recordOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeRecord();
+        });
+
+        // ESC 关闭
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeRecord();
+        });
+
+        // 渲染记录列表
+        function renderRecords() {
+            const messages = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const list = document.getElementById('recordList');
+            if (messages.length === 0) {
+                list.innerHTML = '<div class="record-empty">你还没有留下留言哦~ 💕</div>';
+                return;
+            }
+            list.innerHTML = messages.slice().reverse().map(msg => `
+                <div class="record-item">
+                    <button class="record-item-delete" onclick="deleteRecord(${msg.id})">🗑</button>
+                    <div class="record-item-time">🕐 ${msg.time}</div>
+                    <div class="record-item-content">${escapeHtml(msg.content)}</div>
+                </div>
+            `).join('');
+        }
+
+        // 删除记录
+        function deleteRecord(id) {
+            if (!confirm('确定删除这条留言吗？')) return;
+            let messages = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            messages = messages.filter(m => m.id !== id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+            renderRecords();
+            loadMessages();
+        }
+
+        // 加载留言
+        function loadMessages() {
+            const messages = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const messagesList = document.getElementById('messagesList');
+
+            if (messages.length === 0) {
+                messagesList.innerHTML = '<div class="empty-state">还没有人留言哦，快来成为第一个吧~ 💕</div>';
+                return;
+            }
+
+            messagesList.innerHTML = messages.map(msg => `
+                <div class="message-card">
+                    <div class="message-header">
+                        <span class="message-author">匿名用户</span>
+                        <span class="message-time">${msg.time}</span>
+                    </div>
+                    <div class="message-content">${escapeHtml(msg.content)}</div>
+                </div>
+            `).reverse().join('');
+        }
+
+        // 转义HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 格式化时间
+        function formatTime(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+
+        // 提交留言
+        document.getElementById('messageForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const content = document.getElementById('messageContent').value.trim();
+
+            if (!content) {
+                alert('请填写留言内容！');
+                return;
+            }
+
+            const messages = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const newMessage = {
+                content: content,
+                time: formatTime(new Date()),
+                id: Date.now()
+            };
+
+            messages.push(newMessage);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+
+            // 清空表单
+            document.getElementById('messageContent').value = '';
+
+            // 重新加载留言
+            loadMessages();
+
+            // 提示
+            alert('留言成功！💖');
+        });
+
+        // 页面加载时加载留言
+        window.addEventListener('load', loadMessages);
+    </script>
+    <script src="../assets/js/transition.js"></script>
+</body>
+</html>

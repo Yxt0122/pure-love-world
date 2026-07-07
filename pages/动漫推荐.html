@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>青春恋爱动漫推荐</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="container" style="position: relative;">
+            <h1>💕 青春恋爱动漫推荐</h1>
+            <p class="subtitle">精选经典动漫，带你重温青春与爱情</p>
+            <!-- 右上角返回主页按钮 -->
+            <a href="javascript:void(0)" class="dimension-tree-btn" onclick="transitionTo('../index.html', 'slide-down')">
+                🏠 返回主页
+            </a>
+        </div>
+    </header>
+
+    <nav>
+        <div class="container">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索动漫名称、类型或简介...">
+                <button onclick="searchAnime()">搜索</button>
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="showAll()">全部</button>
+                <button class="filter-btn" onclick="showHistory()">记录</button>
+                <button class="filter-btn" onclick="showFavorites()">收藏</button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            <div id="animeGrid" class="anime-grid">
+                <!-- 动漫卡片将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </main>
+
+    <!-- 弹窗模态框 -->
+    <div id="animeModal" class="modal">
+        <div class="modal-content">
+            <!-- 内容将通过JavaScript动态生成 -->
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 青春恋爱动漫推荐站 | 图片和视频来源于网络</p>
+        </div>
+    </footer>
+
+    <script src="../assets/js/script.js"></script>
+    <script src="../assets/js/heart-effect.js"></script>
+    <script src="../assets/js/transition.js"></script>
+</body>
+</html>

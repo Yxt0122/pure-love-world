@@ -1,0 +1,6 @@
+dimension-tree/node_modules/
+services/comment-backend/__pycache__/
+services/comment-backend/uploads/
+*.db
+dimension-tree/dist/
+__pycache__/

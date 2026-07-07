@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "name": "pure-love-world",
+  "version": 2,
+  "public": true,
+  "routes": [
+    { "src": "/tree/(.*)", "dest": "/tree/$1" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/pages/(.*)", "dest": "/pages/$1" },
+    { "src": "/services/(.*)", "dest": "/services/$1" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ]
+}

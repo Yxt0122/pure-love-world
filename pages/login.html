@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>欢迎来到纯爱世界</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #ffeef8 0%, #ffe3f1 25%, #ffd4e5 50%, #ffc4dc 75%, #ffb5d3 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 漂浮的心形装饰 */
+        .heart-float {
+            position: absolute;
+            font-size: 30px;
+            opacity: 0.3;
+            animation: float 6s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(10deg); }
+        }
+
+        .heart-float:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+        .heart-float:nth-child(2) { top: 20%; right: 15%; animation-delay: 1s; }
+        .heart-float:nth-child(3) { bottom: 15%; left: 20%; animation-delay: 2s; }
+        .heart-float:nth-child(4) { bottom: 25%; right: 10%; animation-delay: 3s; }
+        .heart-float:nth-child(5) { top: 50%; left: 5%; animation-delay: 4s; }
+        .heart-float:nth-child(6) { top: 60%; right: 8%; animation-delay: 5s; }
+
+        /* 爱心形状的登录框 */
+        .login-container {
+            position: relative;
+            width: 600px;
+            height: 650px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .heart-shape {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 60px rgba(255, 105, 180, 0.4);
+            clip-path: path('M 300,600 C 180,480 60,360 60,240 C 60,144 108,96 180,96 C 228,96 276,120 300,168 C 324,120 372,96 420,96 C 492,96 540,144 540,240 C 540,360 420,480 300,600 Z');
+        }
+
+        .login-content {
+            position: relative;
+            z-index: 1;
+            width: 70%;
+            text-align: center;
+            padding: 20px;
+            margin-top: -50px;
+        }
+
+        .login-title {
+            font-size: 1.6em;
+            color: #ff1493;
+            margin-bottom: 8px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(255, 20, 147, 0.3);
+        }
+
+        .login-subtitle {
+            font-size: 0.85em;
+            color: #ff69b4;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-label {
+            display: block;
+            color: #ff1493;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.85em;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #ffb5d3;
+            border-radius: 20px;
+            font-size: 0.95em;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #ff1493;
+            box-shadow: 0 0 15px rgba(255, 20, 147, 0.3);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 11px;
+            background: linear-gradient(135deg, #ff1493 0%, #ff69b4 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.95em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(255, 20, 147, 0.4);
+            margin-top: 8px;
+        }
+
+        .login-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(255, 20, 147, 0.6);
+        }
+
+        .login-button:active {
+            transform: translateY(-1px);
+        }
+
+        .login-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* 樱花飘落动画 */
+        .sakura {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: #ffb5d3;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: fall 8s infinite linear;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100px) translateX(0) rotate(0deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(100vh) translateX(100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 漂浮的心形装饰 -->
+    <div class="heart-float">💗</div>
+    <div class="heart-float">💕</div>
+    <div class="heart-float">💖</div>
+    <div class="heart-float">💝</div>
+    <div class="heart-float">💗</div>
+    <div class="heart-float">💕</div>
+
+    <!-- 樱花飘落 -->
+    <div class="sakura" style="left: 10%; animation-delay: 0s;"></div>
+    <div class="sakura" style="left: 30%; animation-delay: 2s;"></div>
+    <div class="sakura" style="left: 50%; animation-delay: 4s;"></div>
+    <div class="sakura" style="left: 70%; animation-delay: 6s;"></div>
+    <div class="sakura" style="left: 90%; animation-delay: 1s;"></div>
+
+    <!-- 爱心形登录框 -->
+    <div class="login-container">
+        <div class="heart-shape"></div>
+        <div class="login-content">
+            <h1 class="login-title">💖 纯爱世界 💖</h1>
+            <p class="login-subtitle">开启你的青春恋爱之旅</p>
+
+            <form id="loginForm">
+                <div class="input-group">
+                    <label class="input-label">你的昵称</label>
+                    <input type="text" id="username" class="input-field" placeholder="输入你的名字..." required>
+                </div>
+
+                <button type="submit" class="login-button" id="loginBtn">
+                    ✨ 进入纯爱世界 ✨
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 表单提交
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+
+            if (!username) {
+                alert('请输入你的昵称！');
+                return;
+            }
+
+            // 保存用户信息到localStorage
+            localStorage.setItem('user_name', username);
+
+            // 跳转到加载页面
+            window.location.href = 'loading.html';
+        });
+
+        // 页面加载时检查是否已登录
+        window.addEventListener('load', function() {
+            const savedName = localStorage.getItem('user_name');
+
+            if (savedName) {
+                // 已登录，直接跳转
+                window.location.href = '../index.html';
+            }
+        });
+    </script>
+    <script src="../assets/js/transition.js"></script>
+</body>
+</html>

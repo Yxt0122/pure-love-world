@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小杨的主页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: url('assets/images/site/背景图.jpg') center center no-repeat;
+            background-size: 100% 100%;
+            height: 100vh;
+            padding: 30px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 半模糊化的动态背景层：覆盖在 body 背景之上，带呼吸缩放营造风吹动感 */
+        .bg-blur-layer {
+            position: fixed;
+            inset: -5%;
+            z-index: 0;
+            background: url('assets/images/site/背景图.jpg') center center no-repeat;
+            background-size: 100% 100%;
+            filter: blur(4px) brightness(0.9);
+            animation: bgBreathe 12s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes bgBreathe {
+            0%, 100% { transform: scale(1) translateX(0); }
+            25% { transform: scale(1.015) translateX(-3px); }
+            50% { transform: scale(1.02) translateX(2px); }
+            75% { transform: scale(1.01) translateX(-1px); }
+        }
+        /* 让所有内容层在背景之上 */
+        .container, .bg-particles, .logout-btn { position: relative; z-index: 1; }
+
+        /* 背景动画粒子 */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            height: calc(100vh - 60px);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 350px 1fr 350px;
+            grid-template-rows: 1fr 220px;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 左侧个人信息卡片 */
+        .profile-card {
+            grid-row: 1;
+            grid-column: 1;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            border: 5px solid #667eea;
+            object-fit: cover;
+        }
+
+        .profile-card h1 {
+            font-size: 2em;
+            color: #000;
+            margin-bottom: 10px;
+            font-weight: 900;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        .profile-card .subtitle {
+            color: #000;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            padding: 20px 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat-item {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .stat-number {
+            font-size: 1.8em;
+            font-weight: 900;
+            color: #ff1744;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            min-height: 1.8em;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #000;
+            margin-top: 5px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        /* 中间上方大卡片 - 情书样式 */
+        .intro-card {
+            grid-column: 2;
+            grid-row: 1;
+            background: rgba(255, 249, 240, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .intro-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: repeating-linear-gradient(
+                90deg,
+                #ff6b6b 0px,
+                #ff6b6b 2px,
+                transparent 2px,
+                transparent 10px
+            );
+            opacity: 0.3;
+        }
+
+        .intro-card h2 {
+            font-size: 2em;
+            color: #ff1744;
+            margin-bottom: 20px;
+            font-family: 'Brush Script MT', cursive;
+            text-align: center;
+            font-weight: 900;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .intro-card p {
+            color: #000;
+            line-height: 2;
+            font-size: 1.05em;
+            text-indent: 2em;
+            font-family: 'KaiTi', '楷体', serif;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        /* 右侧空卡片 */
+        .right-card-1 {
+            grid-column: 3;
+            grid-row: 1;
+            height: 48%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.9);
+            font-style: italic;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .right-card-1 img,
+        .right-card-2 img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .right-card-1:hover img,
+        .right-card-2:hover img {
+            transform: scale(1.05);
+        }
+
+        .right-card-1 .card-content,
+        .right-card-2 .card-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 20px;
+            color: white;
+            font-style: italic;
+            font-weight: 700;
+            font-size: 1.2em;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .right-card-1:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .right-card-2 {
+            grid-column: 3;
+            grid-row: 1;
+            height: 48%;
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.9);
+            font-style: italic;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .right-card-2:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 中间下方两个功能卡片 */
+        .feature-card {
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+            height: 220px;
+            width: 100%;
+            grid-row: 2;
+        }
+
+        .feature-left {
+            grid-column: 1;
+        }
+
+        .feature-right {
+            grid-column: 3;
+        }
+
+        .feature-card img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover img {
+            transform: scale(1.05);
+        }
+
+        .feature-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: 30px;
+            color: white;
+        }
+
+        .feature-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .feature-desc {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+            }
+
+            .profile-card,
+            .right-card-1,
+            .right-card-2 {
+                grid-column: 1;
+                grid-row: auto;
+            }
+        }
+
+        /* 返回登录按钮 */
+        .logout-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            color: white;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            border: none;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .logout-btn:active {
+            transform: translateY(0);
+        }
+
+        /* === 高级文字特效：祝愿语 === */
+        .wish-text {
+            margin-top: 20px;
+            font-size: 1.6em;
+            font-weight: 800;
+            text-align: center;
+            background: linear-gradient(90deg, #ffd700, #ff9500, #ffe44d, #ffd700);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: wishGradient 4s linear infinite, wishFloat 3s ease-in-out infinite;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 24px rgba(255, 215, 0, 0.5), 0 0 48px rgba(255, 149, 0, 0.3);
+            letter-spacing: 0.05em;
+            filter: brightness(1.4);
+        }
+        @keyframes wishGradient {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 300% 50%; }
+        }
+        @keyframes wishFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        /* === 鼠标流星拖尾 === */
+        /* === 金色星星流星拖尾 === */
+        .meteor-trail {
+            position: fixed;
+            width: 16px; height: 16px;
+            pointer-events: none;
+            z-index: 99998;
+            background: transparent;
+            animation: meteorFade 1.4s ease-out forwards;
+        }
+        .meteor-trail::before {
+            content: '★';
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #ffd700;
+            text-shadow: 0 0 6px #fff, 0 0 14px #ffd700, 0 0 28px #ff9500, 0 0 42px rgba(255,215,0,0.4);
+            animation: starSpin 1.4s ease-out forwards;
+        }
+        .meteor-trail::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 8px; height: 8px;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,215,0,0.6) 50%, transparent 100%);
+            box-shadow: 0 0 16px rgba(255,215,0,0.8);
+            animation: starCore 1.4s ease-out forwards;
+        }
+        @keyframes meteorFade {
+            0% { transform: scale(1.3) translate(0, 0); opacity: 1; }
+            100% { transform: scale(0.4) translate(var(--dx, 45px), var(--dy, 45px)); opacity: 0; }
+        }
+        @keyframes starSpin {
+            0% { transform: rotate(0deg) scale(1); opacity: 1; }
+            100% { transform: rotate(180deg) scale(0.5); opacity: 0; }
+        }
+        @keyframes starCore {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 半模糊动态背景层 -->
+    <div class="bg-blur-layer"></div>
+    <!-- 返回登录按钮 -->
+    <button class="logout-btn" onclick="logout()">
+        <span>🚪</span>
+        <span>返回登录</span>
+    </button>
+
+    <canvas class="bg-particles" id="particles"></canvas>
+
+    <div class="container">
+        <!-- 左侧个人信息 -->
+        <div class="card profile-card">
+            <img src="https://n.sinaimg.cn/sinakd10119/496/w1080h1016/20200912/9413-iyywcsz9174079.jpg" alt="头像" class="avatar">
+            <h1>小杨</h1>
+            <p class="subtitle">纯爱战士 | 动漫爱好者</p>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number">21</div>
+                    <div class="stat-label">动漫收藏</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" style="font-size: 0.95em; line-height: 1.3; white-space: nowrap; transform: translate(14px, -8px);">遇不到纯爱这辈子就不死了！</div>
+                    <div class="stat-label">纯爱信念</div>
+                </div>
+            </div>
+
+            <p style="color: #000; font-size: 0.9em; line-height: 1.6; margin-top: 20px; font-weight: 900; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);">
+                "青春就像一场恋爱动漫，每一个瞬间都值得珍藏。"
+            </p>
+        </div>
+
+        <!-- 中间上方介绍 -->
+        <div class="card intro-card">
+            <h2>Hello, 欢迎来到纯爱至上的世界</h2>
+            <p>
+                这里收藏了我最喜欢的青春恋爱动漫，每一部都是关于成长、友情与爱情的美好故事。
+                在这个小小的角落里，你可以找到那些让人心动的瞬间，重温青春的悸动与纯真。
+            </p>
+            <p style="margin-top: 15px; line-height: 2; text-align: justify;">
+                何为纯爱，大概是剔除所有世俗权衡后的真心，不看家境、不图利弊、不权衡得失，单单只是因为你这个人而心动。没有敷衍的暧昧，没有留后路的犹豫，心里自始至终只装得下一个人，新鲜感永远只会落在同一张面孔上。它不是一时兴起的热烈冲动，是甘愿为了你主动屏蔽世间所有诱惑，自觉和旁人保持界限，把忠诚刻进相处的细节里。纯爱是包容你的所有普通与不完美，接纳你的敏感脆弱，愿意陪你熬过平淡琐碎的日常，不追求轰轰烈烈的剧本，只贪恋朝夕相伴的安稳。这份爱意干净透明，不带一丝私心与算计，满心满眼都是毫无保留的偏爱，从初见的心动，到长久相守的温柔，初心始终不变，只想牵着同一个人，走完岁岁年年。
+            </p>
+            <div class="wish-text">祝愿大家都能遇见命运里的那个他（她）哦！</div>
+        </div>
+
+        <!-- 右侧空卡片1 -->
+        <div class="card right-card-1" onclick="openTreeHole()">
+            <img src="assets/images/site/树洞背景.jpg" alt="恋爱物语树洞">
+            <div class="card-content">🪵 恋爱物语树洞</div>
+        </div>
+
+        <!-- 右侧卡片2：恋爱碎忆 -->
+        <div class="card right-card-2" onclick="openLoveMemories()">
+            <img src="assets/images/site/碎忆背景.jpg" alt="恋爱碎忆">
+            <div class="card-content">🕐 恋爱碎忆</div>
+        </div>
+
+        <!-- 左下：动漫列表 -->
+        <div class="card feature-card feature-left" onclick="transitionTo('pages/动漫推荐.html', 'slide-up')">
+            <img src="https://img.3dmgame.com/uploads/images/news/20230114/1673634133_560506.jpg" alt="青春恋爱动漫">
+            <div class="feature-content">
+                <div class="feature-title">📚 列表简介</div>
+                <div class="feature-desc">21部精选青春恋爱动漫，带你重温最美好的时光</div>
+            </div>
+        </div>
+
+        <!-- 右下：次元树 -->
+        <div class="card feature-card feature-right" onclick="location.href='tree/index.html'">
+            <img src="assets/images/site/次元树图片.jpg" alt="次元树">
+            <div class="feature-content">
+                <div class="feature-title">🌸 纯爱次元树</div>
+                <div class="feature-desc">3D星空相册，沉浸式浏览你的动漫收藏</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 立即检查是否已登录（在页面显示前）
+        (function() {
+            const userName = localStorage.getItem('user_name');
+            if (!userName) {
+                window.location.replace('pages/login.html');
+            }
+        })();
+
+        // 打开树洞页面
+        function openTreeHole() {
+            transitionTo('pages/treehole.html', 'slide-right');
+        }
+
+        // 打开恋爱碎忆页面
+        function openLoveMemories() {
+            transitionTo('pages/恋爱碎忆.html', 'iris');
+        }
+
+        // 返回登录功能
+        function logout() {
+            // 清除登录信息
+            localStorage.removeItem('user_name');
+            // 跳转到登录页（带转场）
+            transitionTo('pages/login.html', 'fade-blur');
+        }
+
+        // 检查是否已登录
+        window.addEventListener('load', function() {
+            const userName = localStorage.getItem('user_name');
+
+            if (!userName) {
+                // 未登录，跳转到登录页
+                window.location.href = 'pages/login.html';
+                return;
+            }
+        });
+
+        // 流星动画
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const meteors = [];
+
+        // 创建流星
+        function createMeteor() {
+            return {
+                x: Math.random() * canvas.width,
+                y: -50,
+                length: Math.random() * 150 + 80, // 增大长度
+                speed: Math.random() * 5 + 3, // 增加速度
+                opacity: Math.random() * 0.7 + 0.5, // 增加不透明度
+                angle: Math.PI / 4,
+                width: Math.random() * 2 + 2 // 增加宽度
+            };
+        }
+
+        // 初始化更多流星
+        for (let i = 0; i < 8; i++) {
+            meteors.push(createMeteor());
+        }
+
+        // 更频繁生成新流星
+        setInterval(() => {
+            if (Math.random() > 0.3 && meteors.length < 15) {
+                meteors.push(createMeteor());
+            }
+        }, 800);
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 绘制流星
+            meteors.forEach((meteor, index) => {
+                ctx.save();
+                ctx.translate(meteor.x, meteor.y);
+                ctx.rotate(meteor.angle);
+
+                // 流星尾巴渐变
+                const gradient = ctx.createLinearGradient(0, 0, meteor.length, 0);
+                gradient.addColorStop(0, `rgba(255, 255, 255, ${meteor.opacity})`);
+                gradient.addColorStop(0.3, `rgba(135, 206, 250, ${meteor.opacity * 0.8})`);
+                gradient.addColorStop(0.6, `rgba(100, 149, 237, ${meteor.opacity * 0.5})`);
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = meteor.width;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(meteor.length, 0);
+                ctx.stroke();
+
+                ctx.restore();
+
+                // 更新位置
+                meteor.x += Math.cos(meteor.angle) * meteor.speed;
+                meteor.y += Math.sin(meteor.angle) * meteor.speed;
+
+                // 移出屏幕则移除
+                if (meteor.y > canvas.height + 100) {
+                    meteors.splice(index, 1);
+                }
+            });
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // === 鼠标流星拖尾特效 ===
+        let lastMouseX = 0, lastMouseY = 0, mouseThrottle = 0;
+        document.addEventListener('mousemove', function(e) {
+            const now = performance.now();
+            if (now - mouseThrottle < 30) return; // 节流，每 30ms 生成一个
+            mouseThrottle = now;
+
+            const dx = e.clientX - lastMouseX;
+            const dy = e.clientY - lastMouseY;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+
+            const trail = document.createElement('div');
+            trail.className = 'meteor-trail';
+            trail.style.left = e.clientX + 'px';
+            trail.style.top = e.clientY + 'px';
+            trail.style.setProperty('--dx', (dx * 0.8) + 'px');
+            trail.style.setProperty('--dy', (dy * 0.8) + 'px');
+            document.body.appendChild(trail);
+            setTimeout(() => trail.remove(), 800);
+        });
+    </script>
+    <script src="assets/js/transition.js"></script>
+</body>
+</html>
