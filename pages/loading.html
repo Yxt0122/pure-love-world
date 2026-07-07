@@ -294,6 +294,7 @@
 
                 // 加载完成后跳转（带转场特效）
                 setTimeout(() => {
+                    sessionStorage.setItem('allow_home', '1');
                     transitionTo('../index.html', 'curtain');
                 }, 500);
             } else {
