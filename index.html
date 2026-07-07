@@ -1,14 +1,28 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="auth-checking">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>小杨的主页</title>
+    <script>
+        // 在页面渲染前检查登录状态，避免未登录时先闪现主页
+        (function() {
+            if (!localStorage.getItem('user_name')) {
+                window.location.replace('pages/login.html');
+            } else {
+                document.documentElement.classList.remove('auth-checking');
+            }
+        })();
+    </script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        html.auth-checking body {
+            visibility: hidden;
         }
 
         body {
@@ -526,14 +540,6 @@
     </div>
 
     <script>
-        // 立即检查是否已登录（在页面显示前）
-        (function() {
-            const userName = localStorage.getItem('user_name');
-            if (!userName) {
-                window.location.replace('pages/login.html');
-            }
-        })();
-
         // 打开树洞页面
         function openTreeHole() {
             transitionTo('pages/treehole.html', 'slide-right');
