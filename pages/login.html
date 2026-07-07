@@ -216,19 +216,11 @@
 
             // 保存用户信息到localStorage
             localStorage.setItem('user_name', username);
+            // 只允许本次登录流程进入主页；直接打开网站仍会先到登录页
+            sessionStorage.setItem('allow_home', '1');
 
             // 跳转到加载页面
             window.location.href = 'loading.html';
-        });
-
-        // 页面加载时检查是否已登录
-        window.addEventListener('load', function() {
-            const savedName = localStorage.getItem('user_name');
-
-            if (savedName) {
-                // 已登录，直接跳转
-                window.location.href = '../index.html';
-            }
         });
     </script>
     <script src="../assets/js/transition.js"></script>
