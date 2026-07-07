@@ -170,7 +170,25 @@
             object-fit: cover;
             pointer-events: none;
             border-radius: 3px;
+            background: linear-gradient(135deg, rgba(255,107,157,0.35), rgba(107,197,255,0.25));
         }
+        .video-card:not(.loaded)::before {
+            box-shadow: inset 0 0 0 999px rgba(255, 255, 255, 0.03);
+        }
+        .video-card .lazy-tip {
+            position: absolute;
+            inset: 22px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.85);
+            font-size: 13px;
+            letter-spacing: 0.08em;
+            background: radial-gradient(circle at center, rgba(255,107,157,0.45), rgba(20,20,35,0.45));
+            border-radius: 3px;
+            pointer-events: none;
+        }
+        .video-card.loaded .lazy-tip { display: none; }
         .video-card .play-icon {
             position: absolute;
             top: 50%; left: 50%;
@@ -318,24 +336,33 @@
             video.muted = true;
             video.loop = true;
             video.playsInline = true;
-            video.preload = 'auto';
+            video.preload = 'none';
 
             const playIcon = document.createElement('div');
             playIcon.className = 'play-icon';
+            const lazyTip = document.createElement('div');
+            lazyTip.className = 'lazy-tip';
+            lazyTip.textContent = '点击播放';
 
             card.appendChild(video);
+            card.appendChild(lazyTip);
             card.appendChild(playIcon);
+            card.addEventListener('mouseenter', () => loadVideoCard(card, false), { once: true });
             card.addEventListener('click', () => openModal(index));
             return card;
         }
 
         // 给卡片加载视频并播放
-        function loadVideoCard(card) {
+        function loadVideoCard(card, autoPlay = true) {
             if (card.dataset.loaded === '1') return;
             card.dataset.loaded = '1';
+            card.classList.add('loaded');
             const video = card.querySelector('video');
+            video.preload = 'metadata';
             video.src = card.dataset.src;
-            video.addEventListener('canplay', () => { video.play().catch(() => {}); }, { once: true });
+            if (autoPlay) {
+                video.addEventListener('canplay', () => { video.play().catch(() => {}); }, { once: true });
+            }
         }
 
         // 分批创建视频卡片（同步创建 DOM，不加载视频）
@@ -356,32 +383,17 @@
         buildTrack(trackTop, topVideos, 0);
         buildTrack(trackBottom, bottomVideos, 11);
 
-        // 页面渲染完成后，上下排交替分批加载，确保两排同时亮起
-        function lazyLoadAll() {
+        // 页面渲染完成后，只加载少量首屏预览，避免一次性拉取几十个视频
+        function lazyLoadInitial() {
             const topCards = trackTop.querySelectorAll('.video-card[data-loaded="0"]');
             const bottomCards = trackBottom.querySelectorAll('.video-card[data-loaded="0"]');
-            // 优先加载两排的前 3 个（首屏可见），共 6 个
-            for (let i = 0; i < 3; i++) {
+            // 首屏每排只加载前 2 个，共 4 个
+            for (let i = 0; i < 2; i++) {
                 if (topCards[i]) loadVideoCard(topCards[i]);
                 if (bottomCards[i]) loadVideoCard(bottomCards[i]);
             }
-            // 其余视频上下排交替加载，每 180ms 一个
-            let ti = 3, bi = 3, turn = 0;
-            function loadNext() {
-                if (turn % 2 === 0) {
-                    if (ti < topCards.length) { loadVideoCard(topCards[ti]); ti++; }
-                    turn++;
-                } else {
-                    if (bi < bottomCards.length) { loadVideoCard(bottomCards[bi]); bi++; }
-                    turn++;
-                }
-                if (ti < topCards.length || bi < bottomCards.length) {
-                    setTimeout(loadNext, 180);
-                }
-            }
-            setTimeout(loadNext, 500);
         }
-        window.addEventListener('load', lazyLoadAll);
+        window.addEventListener('load', lazyLoadInitial);
 
         // 弹窗播放
         const modalOverlay = document.getElementById('modalOverlay');
