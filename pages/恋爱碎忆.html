@@ -336,7 +336,7 @@
             video.muted = true;
             video.loop = true;
             video.playsInline = true;
-            video.preload = 'none';
+            video.preload = 'auto';
 
             const playIcon = document.createElement('div');
             playIcon.className = 'play-icon';
@@ -347,7 +347,6 @@
             card.appendChild(video);
             card.appendChild(lazyTip);
             card.appendChild(playIcon);
-            card.addEventListener('mouseenter', () => loadVideoCard(card, false), { once: true });
             card.addEventListener('click', () => openModal(index));
             return card;
         }
@@ -358,7 +357,7 @@
             card.dataset.loaded = '1';
             card.classList.add('loaded');
             const video = card.querySelector('video');
-            video.preload = 'metadata';
+            video.preload = 'auto';
             video.src = card.dataset.src;
             if (autoPlay) {
                 video.addEventListener('canplay', () => { video.play().catch(() => {}); }, { once: true });
@@ -383,17 +382,12 @@
         buildTrack(trackTop, topVideos, 0);
         buildTrack(trackBottom, bottomVideos, 11);
 
-        // 页面渲染完成后，只加载少量首屏预览，避免一次性拉取几十个视频
-        function lazyLoadInitial() {
-            const topCards = trackTop.querySelectorAll('.video-card[data-loaded="0"]');
-            const bottomCards = trackBottom.querySelectorAll('.video-card[data-loaded="0"]');
-            // 首屏每排只加载前 2 个，共 4 个
-            for (let i = 0; i < 2; i++) {
-                if (topCards[i]) loadVideoCard(topCards[i]);
-                if (bottomCards[i]) loadVideoCard(bottomCards[i]);
-            }
+        // 页面渲染完成后自动加载全部视频，不需要点击或鼠标移入
+        function loadAllVideos() {
+            const cards = document.querySelectorAll('.video-card[data-loaded="0"]');
+            cards.forEach(card => loadVideoCard(card));
         }
-        window.addEventListener('load', lazyLoadInitial);
+        window.addEventListener('load', loadAllVideos);
 
         // 弹窗播放
         const modalOverlay = document.getElementById('modalOverlay');
