@@ -417,6 +417,16 @@
         const STORAGE_KEY = 'treehole_messages';
         const API_URL = '/api/treehole';
 
+        // 获取或生成访客唯一标识
+        function getVisitorId() {
+            let visitorId = localStorage.getItem('treehole_visitor_id');
+            if (!visitorId) {
+                visitorId = 'visitor_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('treehole_visitor_id', visitorId);
+            }
+            return visitorId;
+        }
+
         // 从后端 API 加载留言
         async function loadMessagesFromGist() {
             try {
@@ -448,12 +458,18 @@
             try {
                 console.log('开始保存到云端:', messages);
 
+                const newMessage = messages[messages.length - 1];
+                const visitorId = getVisitorId();
+
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(messages[messages.length - 1]) // 只发送最新的一条
+                    body: JSON.stringify({
+                        content: newMessage.content,
+                        visitor_id: visitorId
+                    })
                 });
 
                 if (!response.ok) {
@@ -498,31 +514,59 @@
             if (e.key === 'Escape') closeRecord();
         });
 
-        // 渲染记录列表
-        function renderRecords() {
-            const messages = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        // 渲染记录列表（只显示自己的）
+        async function renderRecords() {
+            const visitorId = getVisitorId();
             const list = document.getElementById('recordList');
-            if (messages.length === 0) {
-                list.innerHTML = '<div class="record-empty">你还没有留下留言哦~ 💕</div>';
-                return;
+
+            try {
+                const response = await fetch(`${API_URL}/my?visitor_id=${encodeURIComponent(visitorId)}`);
+                if (!response.ok) throw new Error('加载失败');
+
+                const messages = await response.json();
+
+                if (messages.length === 0) {
+                    list.innerHTML = '<div class="record-empty">你还没有留下留言哦~ 💕</div>';
+                    return;
+                }
+
+                list.innerHTML = messages.map(msg => `
+                    <div class="record-item">
+                        <button class="record-item-delete" onclick="deleteRecord(${msg.id})">🗑</button>
+                        <div class="record-item-time">🕐 ${msg.time || msg.created_at}</div>
+                        <div class="record-item-content">${escapeHtml(msg.content)}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('加载记录失败:', error);
+                list.innerHTML = '<div class="record-empty">加载失败，请稍后重试</div>';
             }
-            list.innerHTML = messages.slice().reverse().map(msg => `
-                <div class="record-item">
-                    <button class="record-item-delete" onclick="deleteRecord(${msg.id})">🗑</button>
-                    <div class="record-item-time">🕐 ${msg.time}</div>
-                    <div class="record-item-content">${escapeHtml(msg.content)}</div>
-                </div>
-            `).join('');
         }
 
         // 删除记录
-        function deleteRecord(id) {
+        async function deleteRecord(id) {
             if (!confirm('确定删除这条留言吗？')) return;
-            let messages = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-            messages = messages.filter(m => m.id !== id);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-            renderRecords();
-            loadMessages();
+
+            const visitorId = getVisitorId();
+
+            try {
+                const response = await fetch(`${API_URL}/${id}?visitor_id=${encodeURIComponent(visitorId)}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert(error.message || '删除失败');
+                    return;
+                }
+
+                alert('删除成功！');
+                renderRecords();
+                loadMessages();
+            } catch (error) {
+                console.error('删除失败:', error);
+                alert('删除失败，请稍后重试');
+            }
         }
 
         // 加载留言

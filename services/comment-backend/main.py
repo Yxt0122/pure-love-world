@@ -438,6 +438,7 @@ def delete_checkin(footprint_id: int, visitor_id: str):
 
 class TreeholeMessage(BaseModel):
     content: str
+    visitor_id: str
     time: str | None = None
     id: int | None = None
 
@@ -464,6 +465,32 @@ def get_treehole_messages():
         })
     return results
 
+@app.get("/api/treehole/my")
+def get_my_treehole_messages(visitor_id: str):
+    """获取我的树洞留言"""
+    if not visitor_id:
+        return {"status": "error", "message": "缺少 visitor_id"}
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(db_query('''
+        SELECT id, content, created_at
+        FROM comments
+        WHERE photo_id = 'treehole' AND visitor_id = ? AND status = 1
+        ORDER BY created_at DESC
+    '''), (visitor_id,))
+    rows = cursor.fetchall()
+    conn.close()
+
+    results = []
+    for r in rows:
+        results.append({
+            "id": r[0],
+            "content": r[1],
+            "created_at": r[2]
+        })
+    return results
+
 @app.post("/api/treehole")
 def create_treehole_message(message: TreeholeMessage, request: Request):
     """发布树洞留言"""
@@ -478,13 +505,13 @@ def create_treehole_message(message: TreeholeMessage, request: Request):
     conn = get_db_connection()
     cursor = conn.cursor()
     insert_sql = '''
-        INSERT INTO comments (photo_id, content, ip_address, status)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO comments (photo_id, content, ip_address, status, visitor_id)
+        VALUES (?, ?, ?, ?, ?)
     '''
     if USE_POSTGRES:
         insert_sql += " RETURNING id"
 
-    cursor.execute(db_query(insert_sql), ('treehole', message.content, ip_address, status))
+    cursor.execute(db_query(insert_sql), ('treehole', message.content, ip_address, status, message.visitor_id))
 
     if USE_POSTGRES:
         comment_id = cursor.fetchone()[0]
@@ -495,6 +522,34 @@ def create_treehole_message(message: TreeholeMessage, request: Request):
     conn.close()
 
     return {"status": "success", "message": "留言已发布", "id": comment_id}
+
+@app.delete("/api/treehole/{comment_id}")
+def delete_treehole_message(comment_id: int, visitor_id: str):
+    """删除我的树洞留言"""
+    if not visitor_id:
+        return {"status": "error", "message": "缺少 visitor_id"}
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # 先检查这条留言是否属于该访客
+    cursor.execute(db_query('SELECT visitor_id FROM comments WHERE id = ?'), (comment_id,))
+    row = cursor.fetchone()
+
+    if not row:
+        conn.close()
+        return {"status": "error", "message": "未找到该留言"}
+
+    if row[0] != visitor_id:
+        conn.close()
+        return {"status": "error", "message": "您无权删除他人的留言"}
+
+    # 删除留言
+    cursor.execute(db_query('DELETE FROM comments WHERE id = ?'), (comment_id,))
+    conn.commit()
+    conn.close()
+
+    return {"status": "success", "message": "删除成功"}
 
 # ===== 单服务部署：挂载前端静态文件 =====
 # API 路由已在上文全部定义，FastAPI 会优先匹配 API 路由
