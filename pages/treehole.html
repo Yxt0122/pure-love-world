@@ -415,22 +415,86 @@
 
     <script>
         const STORAGE_KEY = 'treehole_messages';
-        const GITHUB_GIST_ID = '034f12b3d9cd1c77b0c187b7af96ab98'; // 树洞留言云端存储
-        const GITHUB_TOKEN = ''; // 公开Gist无需token
+        const GITHUB_GIST_ID = '034f12b3d9cd1c77b0c187b7af96ab98';
+        const GITHUB_TOKEN = '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';
 
-        // 从GitHub Gist加载留言（只读模式）
+        // 从GitHub Gist加载留言
         async function loadMessagesFromGist() {
-            // 暂时禁用Gist加载，直接使用本地存储
-            // 等后续配置好token后再启用
-            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            try {
+                console.log('开始从 Gist 加载留言...');
+                console.log('Gist ID:', GITHUB_GIST_ID);
+
+                const response = await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`, {
+                    headers: {
+                        'Authorization': `token ${GITHUB_TOKEN}`
+                    }
+                });
+                console.log('API 响应状态:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API 响应错误:', errorText);
+                    throw new Error('加载失败: ' + response.status);
+                }
+
+                const gist = await response.json();
+                console.log('文件列表:', Object.keys(gist.files || {}));
+
+                // 检查文件是否存在
+                if (!gist.files || !gist.files['treehole-messages.json']) {
+                    console.log('Gist 文件不存在，返回空数组');
+                    return [];
+                }
+
+                const content = gist.files['treehole-messages.json'].content;
+                const messages = JSON.parse(content);
+
+                // 同时保存到本地缓存
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+                console.log('✅ 从云端加载成功，共', messages.length, '条留言');
+                return messages;
+            } catch (error) {
+                console.error('❌ 从云端加载失败，使用本地缓存:', error);
+                const localMessages = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                console.log('本地缓存中有', localMessages.length, '条留言');
+                return localMessages;
+            }
         }
 
-        // 保存留言到GitHub Gist（需要token，暂时禁用）
+        // 保存留言到GitHub Gist
         async function saveMessagesToGist(messages) {
-            // 由于GitHub API限制，公开Gist无法匿名写入
-            // 暂时只保存到本地，等待后续升级
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
-            return true;
+            try {
+                console.log('开始保存到云端:', messages);
+
+                const response = await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `token ${GITHUB_TOKEN}`
+                    },
+                    body: JSON.stringify({
+                        files: {
+                            'treehole-messages.json': {
+                                content: JSON.stringify(messages, null, 2)
+                            }
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('保存失败:', errorData);
+                    throw new Error('保存失败');
+                }
+
+                console.log('保存到云端成功！');
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+                return true;
+            } catch (error) {
+                console.error('保存到云端失败:', error);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+                return false;
+            }
         }
 
         // 返回主页
