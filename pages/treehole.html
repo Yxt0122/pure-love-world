@@ -547,7 +547,7 @@
             };
 
             messages.push(newMessage);
-            const success = await saveMessagesToGist(messages);
+            await saveMessagesToGist(messages);
 
             // 清空表单
             document.getElementById('messageContent').value = '';
@@ -556,12 +556,10 @@
             await loadMessages();
 
             // 提示
-            showNotification('💕 留言已投入树洞！');
+            alert('留言成功！💖');
 
             submitBtn.disabled = false;
             submitBtn.textContent = '✨ 投入树洞 ✨';
-        });
-            alert('留言成功！💖');
         });
 
         // 页面加载时加载留言
