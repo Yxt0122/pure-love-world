@@ -1,0 +1,46 @@
+/**
+ * 次元树返回主页按钮
+ */
+(function() {
+    // 创建返回按钮
+    const backBtn = document.createElement('button');
+    backBtn.id = 'tree-back-btn';
+    backBtn.innerHTML = '← 返回主页';
+    backBtn.style.cssText = `
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        z-index: 10000;
+        padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 24px;
+        color: #333;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        font-family: 'Segoe UI', sans-serif;
+    `;
+
+    // 悬停效果
+    backBtn.addEventListener('mouseenter', () => {
+        backBtn.style.background = 'rgba(255, 255, 255, 0.4)';
+        backBtn.style.transform = 'translateX(-4px)';
+    });
+
+    backBtn.addEventListener('mouseleave', () => {
+        backBtn.style.background = 'rgba(255, 255, 255, 0.25)';
+        backBtn.style.transform = 'translateX(0)';
+    });
+
+    // 点击返回主页，使用zoom转场效果
+    backBtn.addEventListener('click', () => {
+        window.location.href = '../index.html#pt=zoom';
+    });
+
+    // 添加到页面
+    document.body.appendChild(backBtn);
+})();
