@@ -347,12 +347,8 @@
 
             const playIcon = document.createElement('div');
             playIcon.className = 'play-icon';
-            const lazyTip = document.createElement('div');
-            lazyTip.className = 'lazy-tip';
-            lazyTip.textContent = '加载中';
 
             card.appendChild(video);
-            card.appendChild(lazyTip);
             card.appendChild(playIcon);
             card.addEventListener('click', () => openModal(index));
             return card;
