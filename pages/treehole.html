@@ -415,12 +415,12 @@
 
     <script>
         const STORAGE_KEY = 'treehole_messages';
-        const API_URL = 'https://treeholeapi.3245221442.workers.dev/messages';
+        const API_URL = '/api/treehole';
 
-        // 从 Cloudflare Worker 加载留言
+        // 从后端 API 加载留言
         async function loadMessagesFromGist() {
             try {
-                console.log('开始从云端加载留言...');
+                console.log('开始从后端加载留言...');
 
                 const response = await fetch(API_URL);
                 console.log('API 响应状态:', response.status);
@@ -443,7 +443,7 @@
             }
         }
 
-        // 保存留言到 Cloudflare Worker
+        // 保存留言到后端 API
         async function saveMessagesToGist(messages) {
             try {
                 console.log('开始保存到云端:', messages);
@@ -453,7 +453,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(messages)
+                    body: JSON.stringify(messages[messages.length - 1]) // 只发送最新的一条
                 });
 
                 if (!response.ok) {

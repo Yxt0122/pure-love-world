@@ -434,6 +434,68 @@ def delete_checkin(footprint_id: int, visitor_id: str):
     conn.close()
     return {"status": "success", "message": "撤销点亮成功"}
 
+# =========== 树洞功能接口 ===========
+
+class TreeholeMessage(BaseModel):
+    content: str
+    time: str | None = None
+    id: int | None = None
+
+@app.get("/api/treehole")
+def get_treehole_messages():
+    """获取所有树洞留言"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(db_query('''
+        SELECT id, content, created_at
+        FROM comments
+        WHERE photo_id = 'treehole' AND status = 1
+        ORDER BY created_at DESC
+    '''))
+    rows = cursor.fetchall()
+    conn.close()
+
+    results = []
+    for r in rows:
+        results.append({
+            "id": r[0],
+            "content": r[1],
+            "time": r[2]
+        })
+    return results
+
+@app.post("/api/treehole")
+def create_treehole_message(message: TreeholeMessage, request: Request):
+    """发布树洞留言"""
+    # 提取IP
+    ip_address = request.headers.get("X-Forwarded-For")
+    if not ip_address:
+        ip_address = request.client.host
+
+    # 检查内容
+    status = check_content(message.content)
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    insert_sql = '''
+        INSERT INTO comments (photo_id, content, ip_address, status)
+        VALUES (?, ?, ?, ?)
+    '''
+    if USE_POSTGRES:
+        insert_sql += " RETURNING id"
+
+    cursor.execute(db_query(insert_sql), ('treehole', message.content, ip_address, status))
+
+    if USE_POSTGRES:
+        comment_id = cursor.fetchone()[0]
+    else:
+        comment_id = cursor.lastrowid
+
+    conn.commit()
+    conn.close()
+
+    return {"status": "success", "message": "留言已发布", "id": comment_id}
+
 # ===== 单服务部署：挂载前端静态文件 =====
 # API 路由已在上文全部定义，FastAPI 会优先匹配 API 路由
 # 使用上方已检测到的 _project_root 挂载静态文件
