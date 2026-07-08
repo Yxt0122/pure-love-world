@@ -415,39 +415,21 @@
 
     <script>
         const STORAGE_KEY = 'treehole_messages';
-        const GITHUB_GIST_ID = '034f12b3d9cd1c77b0c187b7af96ab98';
-        const GITHUB_TOKEN = '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';
+        const API_URL = 'https://treeholeapi.3245221442.workers.dev/messages';
 
-        // 从GitHub Gist加载留言
+        // 从 Cloudflare Worker 加载留言
         async function loadMessagesFromGist() {
             try {
-                console.log('开始从 Gist 加载留言...');
-                console.log('Gist ID:', GITHUB_GIST_ID);
+                console.log('开始从云端加载留言...');
 
-                const response = await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`, {
-                    headers: {
-                        'Authorization': `token ${GITHUB_TOKEN}`
-                    }
-                });
+                const response = await fetch(API_URL);
                 console.log('API 响应状态:', response.status);
 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('API 响应错误:', errorText);
                     throw new Error('加载失败: ' + response.status);
                 }
 
-                const gist = await response.json();
-                console.log('文件列表:', Object.keys(gist.files || {}));
-
-                // 检查文件是否存在
-                if (!gist.files || !gist.files['treehole-messages.json']) {
-                    console.log('Gist 文件不存在，返回空数组');
-                    return [];
-                }
-
-                const content = gist.files['treehole-messages.json'].content;
-                const messages = JSON.parse(content);
+                const messages = await response.json();
 
                 // 同时保存到本地缓存
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
@@ -461,24 +443,17 @@
             }
         }
 
-        // 保存留言到GitHub Gist
+        // 保存留言到 Cloudflare Worker
         async function saveMessagesToGist(messages) {
             try {
                 console.log('开始保存到云端:', messages);
 
-                const response = await fetch(`https://api.github.com/gists/${GITHUB_GIST_ID}`, {
-                    method: 'PATCH',
+                const response = await fetch(API_URL, {
+                    method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `token ${GITHUB_TOKEN}`
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        files: {
-                            'treehole-messages.json': {
-                                content: JSON.stringify(messages, null, 2)
-                            }
-                        }
-                    })
+                    body: JSON.stringify(messages)
                 });
 
                 if (!response.ok) {
@@ -487,11 +462,11 @@
                     throw new Error('保存失败');
                 }
 
-                console.log('保存到云端成功！');
+                console.log('✅ 保存到云端成功！');
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
                 return true;
             } catch (error) {
-                console.error('保存到云端失败:', error);
+                console.error('❌ 保存到云端失败:', error);
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
                 return false;
             }
